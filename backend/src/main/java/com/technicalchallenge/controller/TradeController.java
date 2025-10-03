@@ -4,6 +4,8 @@ import com.technicalchallenge.dto.TradeDTO;
 import com.technicalchallenge.mapper.TradeMapper;
 import com.technicalchallenge.model.Trade;
 import com.technicalchallenge.service.TradeService;
+import com.technicalchallenge.service.TradeValidationException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -92,9 +94,12 @@ public class TradeController {
             Trade savedTrade = tradeService.saveTrade(trade, tradeDTO);
             TradeDTO responseDTO = tradeMapper.toDto(savedTrade);
             return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
+        } catch (TradeValidationException e) {
+            logger.error("Trade Validation Exception: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            logger.error("Error creating trade: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body("Error creating trade: " + e.getMessage());
+            logger.error("Unexpected error creating trade: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().body("Unexpected error creating trade: " + e.getMessage());
         }
     }
 

@@ -22,7 +22,7 @@ public class TradeDTO {
 
     private Integer version;
 
-    @NotNull(message = "Trade date is required")
+    //@NotNull(message = "Trade date is required")
     private LocalDate tradeDate;
 
     @JsonProperty("startDate")
@@ -48,7 +48,7 @@ public class TradeDTO {
 
     // Counterparty reference
     private Long counterpartyId;
-    @NotNull(message = "Counterparty name is required")
+    //@NotNull(message = "Counterparty name is required")
     private String counterpartyName;
 
     // User references

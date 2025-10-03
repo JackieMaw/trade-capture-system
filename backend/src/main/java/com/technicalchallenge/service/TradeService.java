@@ -337,21 +337,33 @@ public class TradeService {
     }
 
     private void validateTradeCreation(TradeDTO tradeDTO) {
-        // Validate dates - Fixed to use consistent field names
+
+        if (tradeDTO.getTradeDate() == null) {
+            throw new TradeValidationException("Trade date is required");
+        }
+
+        if (tradeDTO.getBookName() == null) {
+            throw new TradeValidationException("Book Name is required");
+        }
+
+        if (tradeDTO.getCounterpartyName() == null) {
+            throw new TradeValidationException("Counterparty Name is required");
+        }
+
         if (tradeDTO.getTradeStartDate() != null && tradeDTO.getTradeDate() != null) {
             if (tradeDTO.getTradeStartDate().isBefore(tradeDTO.getTradeDate())) {
-                throw new RuntimeException("Start date cannot be before trade date");
-            }
-        }
-        if (tradeDTO.getTradeMaturityDate() != null && tradeDTO.getTradeStartDate() != null) {
-            if (tradeDTO.getTradeMaturityDate().isBefore(tradeDTO.getTradeStartDate())) {
-                throw new RuntimeException("Maturity date cannot be before start date");
+                throw new TradeValidationException("Start date cannot be before trade date");
             }
         }
 
-        // Validate trade has exactly 2 legs
+        if (tradeDTO.getTradeMaturityDate() != null && tradeDTO.getTradeStartDate() != null) {
+            if (tradeDTO.getTradeMaturityDate().isBefore(tradeDTO.getTradeStartDate())) {
+                throw new TradeValidationException("Maturity date cannot be before start date");
+            }
+        }
+
         if (tradeDTO.getTradeLegs() == null || tradeDTO.getTradeLegs().size() != 2) {
-            throw new RuntimeException("Trade must have exactly 2 legs");
+            throw new TradeValidationException("Trade must have exactly 2 legs");
         }
     }
 
