@@ -334,7 +334,7 @@ public class TradeService {
         trade.setLastTouchTimestamp(LocalDateTime.now());
 
         return tradeRepository.save(trade);
-    }
+    } 
 
     private void validateTradeCreation(TradeDTO tradeDTO) {
 
@@ -385,6 +385,7 @@ public class TradeService {
             var legDTO = tradeDTO.getTradeLegs().get(i);
 
             TradeLeg tradeLeg = new TradeLeg();
+            tradeLeg.setLegId(Long.valueOf(i + 1));
             tradeLeg.setTrade(savedTrade);
             tradeLeg.setNotional(legDTO.getNotional());
             tradeLeg.setRate(legDTO.getRate());

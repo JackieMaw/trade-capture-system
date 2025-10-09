@@ -2,12 +2,20 @@ package com.technicalchallenge.service;
 
 import com.technicalchallenge.dto.TradeDTO;
 import com.technicalchallenge.dto.TradeLegDTO;
+import com.technicalchallenge.model.Book;
+import com.technicalchallenge.model.Counterparty;
 import com.technicalchallenge.model.Trade;
 import com.technicalchallenge.model.TradeLeg;
+import com.technicalchallenge.model.TradeStatus;
+import com.technicalchallenge.repository.BookRepository;
 import com.technicalchallenge.repository.CashflowRepository;
+import com.technicalchallenge.repository.CounterpartyRepository;
 import com.technicalchallenge.repository.TradeLegRepository;
 import com.technicalchallenge.repository.TradeRepository;
 import com.technicalchallenge.repository.TradeStatusRepository;
+
+import lombok.experimental.var;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +44,12 @@ class TradeServiceTest {
     private CashflowRepository cashflowRepository;
 
     @Mock
+    private BookRepository bookRepository;
+
+    @Mock
+    private CounterpartyRepository counterpartyRepository;
+
+    @Mock
     private TradeStatusRepository tradeStatusRepository;
 
     @Mock
@@ -49,12 +63,16 @@ class TradeServiceTest {
 
     @BeforeEach
     void setUp() {
+
         // Set up test data
         tradeDTO = new TradeDTO();
         tradeDTO.setTradeId(100001L);
         tradeDTO.setTradeDate(LocalDate.of(2025, 1, 15));
         tradeDTO.setTradeStartDate(LocalDate.of(2025, 1, 17));
         tradeDTO.setTradeMaturityDate(LocalDate.of(2026, 1, 17));
+        tradeDTO.setBookName("Fake Book");
+        tradeDTO.setCounterpartyName("Fake Counterparty");
+        tradeDTO.setTradeStatus("Fake Status");
 
         TradeLegDTO leg1 = new TradeLegDTO();
         leg1.setNotional(BigDecimal.valueOf(1000000));
@@ -66,9 +84,23 @@ class TradeServiceTest {
 
         tradeDTO.setTradeLegs(Arrays.asList(leg1, leg2));
 
+        //setup mocks 
+        SetupRepostoryMocks();
+
         trade = new Trade();
         trade.setId(1L);
         trade.setTradeId(100001L);
+    }
+
+    private void SetupRepostoryMocks() {
+        Optional<Book> fakeBook = Optional.of(new Book());
+        when(bookRepository.findByBookName(any(String.class))).thenReturn(fakeBook);
+
+        Optional<Counterparty> fakeCounterparty = Optional.of(new Counterparty());
+        when(counterpartyRepository.findByName(any(String.class))).thenReturn(fakeCounterparty);
+
+        Optional<TradeStatus> fakeTradeStatus = Optional.of(new TradeStatus());
+        when(tradeStatusRepository.findByTradeStatus(any(String.class))).thenReturn(fakeTradeStatus);
     }
 
     @Test
@@ -165,19 +197,20 @@ class TradeServiceTest {
         assertTrue(exception.getMessage().contains("Trade not found"));
     }
 
-    // This test has a deliberate bug for candidates to find and fix
     @Test
     void testCashflowGeneration_MonthlySchedule() {
-        // This test method is incomplete and has logical errors
-        // Candidates need to implement proper cashflow testing
+        
+        // Given
 
-        // Given - setup is incomplete
-        TradeLeg leg = new TradeLeg();
-        leg.setNotional(BigDecimal.valueOf(1000000));
+        // When
+        Trade result = tradeService.createTrade(tradeDTO);
 
-        // When - method call is missing
-
-        // Then - assertions are wrong/missing
-        assertEquals(1, 12); // This will always fail - candidates need to fix
-    }
+        // Then
+        int numberOfCashFlows = 0;
+        for (TradeLeg tradeLeg : result.getTradeLegs()) {
+            numberOfCashFlows += tradeLeg.getCashflows().size();
+        }
+        
+        assertEquals(12, numberOfCashFlows); 
+    }   
 }
