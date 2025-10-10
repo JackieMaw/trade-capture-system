@@ -381,6 +381,10 @@ public class TradeService {
     }
 
     private void createTradeLegsWithCashflows(TradeDTO tradeDTO, Trade savedTrade) {
+
+        ArrayList<TradeLeg> tradeLegs = new ArrayList<TradeLeg>();
+        savedTrade.setTradeLegs(tradeLegs);
+
         for (int i = 0; i < tradeDTO.getTradeLegs().size(); i++) {
             var legDTO = tradeDTO.getTradeLegs().get(i);
 
@@ -396,6 +400,7 @@ public class TradeService {
             populateLegReferenceData(tradeLeg, legDTO);
 
             TradeLeg savedLeg = tradeLegRepository.save(tradeLeg);
+            tradeLegs.add(savedLeg);
 
             // Generate cashflows for this leg
             if (tradeDTO.getTradeStartDate() != null && tradeDTO.getTradeMaturityDate() != null) {
@@ -482,7 +487,10 @@ public class TradeService {
      * FIXED: Generate cashflows based on schedule and maturity date
      */
     private void generateCashflows(TradeLeg leg, LocalDate startDate, LocalDate maturityDate) {
-        //logger.info("Generating cashflows for leg {} from {} to {}", leg.getLegId(), startDate, maturityDate);
+        logger.info("Generating cashflows for leg {} from {} to {}", leg.getLegId(), startDate, maturityDate);
+        
+        ArrayList<Cashflow> cashFlows = new ArrayList<Cashflow>();
+        leg.setCashflows(cashFlows);
 
         // Use default schedule if not set
         String schedule = "3M"; // Default to quarterly
@@ -509,9 +517,10 @@ public class TradeService {
             cashflow.setActive(true);
 
             cashflowRepository.save(cashflow);
+            cashFlows.add(cashflow);
         }
 
-        //logger.info("Generated {} cashflows for leg {}", paymentDates.size(), leg.getLegId());
+        logger.info("Generated {} cashflows for leg {}", paymentDates.size(), leg.getLegId());
     }
 
     private int parseSchedule(String schedule) {

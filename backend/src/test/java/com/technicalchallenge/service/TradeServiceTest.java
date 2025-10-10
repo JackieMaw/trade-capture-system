@@ -4,12 +4,14 @@ import com.technicalchallenge.dto.TradeDTO;
 import com.technicalchallenge.dto.TradeLegDTO;
 import com.technicalchallenge.model.Book;
 import com.technicalchallenge.model.Counterparty;
+import com.technicalchallenge.model.Schedule;
 import com.technicalchallenge.model.Trade;
 import com.technicalchallenge.model.TradeLeg;
 import com.technicalchallenge.model.TradeStatus;
 import com.technicalchallenge.repository.BookRepository;
 import com.technicalchallenge.repository.CashflowRepository;
 import com.technicalchallenge.repository.CounterpartyRepository;
+import com.technicalchallenge.repository.ScheduleRepository;
 import com.technicalchallenge.repository.TradeLegRepository;
 import com.technicalchallenge.repository.TradeRepository;
 import com.technicalchallenge.repository.TradeStatusRepository;
@@ -30,7 +32,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,6 +54,9 @@ class TradeServiceTest {
 
     @Mock
     private TradeStatusRepository tradeStatusRepository;
+
+    @Mock
+    private ScheduleRepository scheduleRepository;
 
     @Mock
     private AdditionalInfoService additionalInfoService;
@@ -84,10 +88,12 @@ class TradeServiceTest {
         TradeLegDTO leg1 = new TradeLegDTO();
         leg1.setNotional(BigDecimal.valueOf(1000000));
         leg1.setRate(0.05);
+        leg1.setCalculationPeriodSchedule("1M");
 
         TradeLegDTO leg2 = new TradeLegDTO();
         leg2.setNotional(BigDecimal.valueOf(1000000));
         leg2.setRate(0.0);
+        leg1.setCalculationPeriodSchedule("1M");
 
         tradeDTO.setTradeLegs(Arrays.asList(leg1, leg2));   
     }
@@ -97,18 +103,25 @@ class TradeServiceTest {
         trade = new Trade();
         trade.setTradeId(tradeDTO.getTradeId());
         trade.setTradeDate(tradeDTO.getTradeDate());
+        trade.setTradeStartDate(tradeDTO.getTradeStartDate());
+        trade.setTradeMaturityDate(tradeDTO.getTradeMaturityDate());
+        trade.setVersion(1);
 
-        //TODO - Copy more fields over from the DTO
+        TradeLeg leg1 = new TradeLeg();
+        leg1.setNotional(BigDecimal.valueOf(1000000));
+        leg1.setRate(0.05);
+
+        TradeLeg leg2 = new TradeLeg();
+        leg2.setNotional(BigDecimal.valueOf(1000000));
+        leg2.setRate(0.0);
+
+        trade.setTradeLegs(Arrays.asList(leg1, leg2)); 
     }
 
     @Test
     void testCreateTrade_Success() {
         // Given
-        when(bookRepository.findByBookName(any(String.class))).thenReturn(Optional.of(new Book()));
-        when(counterpartyRepository.findByName(any(String.class))).thenReturn(Optional.of(new Counterparty()));
-        when(tradeStatusRepository.findByTradeStatus(any(String.class))).thenReturn(Optional.of(new TradeStatus()));
-        when(tradeRepository.save(any(Trade.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(tradeLegRepository.save(any(TradeLeg.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        setupMocksForTradeCreation();
 
         // When
         Trade result = tradeService.createTrade(tradeDTO);
@@ -117,6 +130,18 @@ class TradeServiceTest {
         assertNotNull(result);
         assertEquals(100001L, result.getTradeId());
         verify(tradeRepository).save(any(Trade.class));
+    }
+
+    private void setupMocksForTradeCreation() {
+        when(bookRepository.findByBookName(any(String.class))).thenReturn(Optional.of(new Book()));
+        when(counterpartyRepository.findByName(any(String.class))).thenReturn(Optional.of(new Counterparty()));
+        when(tradeStatusRepository.findByTradeStatus(any(String.class))).thenReturn(Optional.of(new TradeStatus()));
+        Schedule schedule = new Schedule();
+        schedule.setId(1L);
+        schedule.setSchedule("1M");
+        when(scheduleRepository.findBySchedule(any(String.class))).thenReturn(Optional.of(schedule)); 
+        when(tradeRepository.save(any(Trade.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(tradeLegRepository.save(any(TradeLeg.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
@@ -177,6 +202,7 @@ class TradeServiceTest {
         when(tradeRepository.findByTradeIdAndActiveTrue(100001L)).thenReturn(Optional.of(trade));
         when(tradeStatusRepository.findByTradeStatus(any(String.class))).thenReturn(Optional.of(new TradeStatus()));
         when(tradeRepository.save(any(Trade.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(tradeLegRepository.save(any(TradeLeg.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         Trade result = tradeService.amendTrade(100001L, tradeDTO);
@@ -203,12 +229,8 @@ class TradeServiceTest {
     void testCashflowGeneration_MonthlySchedule() {
         
         // Given
-        when(bookRepository.findByBookName(any(String.class))).thenReturn(Optional.of(new Book()));
-        when(counterpartyRepository.findByName(any(String.class))).thenReturn(Optional.of(new Counterparty()));
-        when(tradeStatusRepository.findByTradeStatus(any(String.class))).thenReturn(Optional.of(new TradeStatus()));
-        when(tradeRepository.save(any(Trade.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(tradeLegRepository.save(any(TradeLeg.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
+        setupMocksForTradeCreation();
+        
         // When
         Trade result = tradeService.createTrade(tradeDTO);
 
