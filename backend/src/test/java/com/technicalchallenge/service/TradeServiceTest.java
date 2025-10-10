@@ -64,9 +64,14 @@ class TradeServiceTest {
     private Trade trade;
 
     @BeforeEach
-    void setUp() {
+    void setUp() {       
 
-        // Set up test data
+        setupTradeDTO();
+        setupTradeEntity();
+    }
+
+    void setupTradeDTO()
+    {
         tradeDTO = new TradeDTO();
         tradeDTO.setTradeId(100001L);
         tradeDTO.setTradeDate(LocalDate.of(2025, 1, 15));
@@ -84,7 +89,16 @@ class TradeServiceTest {
         leg2.setNotional(BigDecimal.valueOf(1000000));
         leg2.setRate(0.0);
 
-        tradeDTO.setTradeLegs(Arrays.asList(leg1, leg2));
+        tradeDTO.setTradeLegs(Arrays.asList(leg1, leg2));   
+    }
+
+    void setupTradeEntity()
+    {
+        trade = new Trade();
+        trade.setTradeId(tradeDTO.getTradeId());
+        trade.setTradeDate(tradeDTO.getTradeDate());
+
+        //TODO - Copy more fields over from the DTO
     }
 
     @Test
@@ -135,7 +149,7 @@ class TradeServiceTest {
     @Test
     void testGetTradeById_Found() {
         // Given
-        when(tradeRepository.findByTradeIdAndActiveTrue(100001L)).thenReturn(Optional.of(trade));
+        when(tradeRepository.findByTradeIdAndActiveTrue(any(Long.class))).thenReturn(Optional.of(trade));
 
         // When
         Optional<Trade> result = tradeService.getTradeById(100001L);
@@ -148,7 +162,7 @@ class TradeServiceTest {
     @Test
     void testGetTradeById_NotFound() {
         // Given
-        when(tradeRepository.findByTradeIdAndActiveTrue(999L)).thenReturn(Optional.empty());
+        when(tradeRepository.findByTradeIdAndActiveTrue(any(Long.class))).thenReturn(Optional.empty());
 
         // When
         Optional<Trade> result = tradeService.getTradeById(999L);
@@ -161,8 +175,8 @@ class TradeServiceTest {
     void testAmendTrade_Success() {
         // Given
         when(tradeRepository.findByTradeIdAndActiveTrue(100001L)).thenReturn(Optional.of(trade));
-        when(tradeStatusRepository.findByTradeStatus("AMENDED")).thenReturn(Optional.of(new com.technicalchallenge.model.TradeStatus()));
-        when(tradeRepository.save(any(Trade.class))).thenReturn(trade);
+        when(tradeStatusRepository.findByTradeStatus(any(String.class))).thenReturn(Optional.of(new TradeStatus()));
+        when(tradeRepository.save(any(Trade.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         Trade result = tradeService.amendTrade(100001L, tradeDTO);
