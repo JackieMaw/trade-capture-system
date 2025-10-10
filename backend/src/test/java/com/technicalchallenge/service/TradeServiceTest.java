@@ -85,29 +85,14 @@ class TradeServiceTest {
         leg2.setRate(0.0);
 
         tradeDTO.setTradeLegs(Arrays.asList(leg1, leg2));
-
-        //setup mocks 
-        SetupRepostoryMocks();
-
-        trade = new Trade();
-        trade.setId(1L);
-        trade.setTradeId(100001L);
-    }
-
-    private void SetupRepostoryMocks() {
-        Optional<Book> fakeBook = Optional.of(new Book());
-        when(bookRepository.findByBookName(any(String.class))).thenReturn(fakeBook);
-
-        Optional<Counterparty> fakeCounterparty = Optional.of(new Counterparty());
-        when(counterpartyRepository.findByName(any(String.class))).thenReturn(fakeCounterparty);
-
-        Optional<TradeStatus> fakeTradeStatus = Optional.of(new TradeStatus());
-        when(tradeStatusRepository.findByTradeStatus(any(String.class))).thenReturn(fakeTradeStatus);
     }
 
     @Test
     void testCreateTrade_Success() {
         // Given
+        when(bookRepository.findByBookName(any(String.class))).thenReturn(Optional.of(new Book()));
+        when(counterpartyRepository.findByName(any(String.class))).thenReturn(Optional.of(new Counterparty()));
+        when(tradeStatusRepository.findByTradeStatus(any(String.class))).thenReturn(Optional.of(new TradeStatus()));
         when(tradeRepository.save(any(Trade.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(tradeLegRepository.save(any(TradeLeg.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -131,7 +116,7 @@ class TradeServiceTest {
         });
 
         // This assertion is intentionally wrong - candidates need to fix it
-        assertEquals("Wrong error message", exception.getMessage());
+        assertEquals("Start date cannot be before trade date", exception.getMessage());
     }
 
     @Test
@@ -204,6 +189,11 @@ class TradeServiceTest {
     void testCashflowGeneration_MonthlySchedule() {
         
         // Given
+        when(bookRepository.findByBookName(any(String.class))).thenReturn(Optional.of(new Book()));
+        when(counterpartyRepository.findByName(any(String.class))).thenReturn(Optional.of(new Counterparty()));
+        when(tradeStatusRepository.findByTradeStatus(any(String.class))).thenReturn(Optional.of(new TradeStatus()));
+        when(tradeRepository.save(any(Trade.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(tradeLegRepository.save(any(TradeLeg.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         Trade result = tradeService.createTrade(tradeDTO);
