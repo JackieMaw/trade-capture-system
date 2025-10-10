@@ -482,7 +482,7 @@ public class TradeService {
      * FIXED: Generate cashflows based on schedule and maturity date
      */
     private void generateCashflows(TradeLeg leg, LocalDate startDate, LocalDate maturityDate) {
-        logger.info("Generating cashflows for leg {} from {} to {}", leg.getLegId(), startDate, maturityDate);
+        //logger.info("Generating cashflows for leg {} from {} to {}", leg.getLegId(), startDate, maturityDate);
 
         // Use default schedule if not set
         String schedule = "3M"; // Default to quarterly
@@ -511,7 +511,7 @@ public class TradeService {
             cashflowRepository.save(cashflow);
         }
 
-        logger.info("Generated {} cashflows for leg {}", paymentDates.size(), leg.getLegId());
+        //logger.info("Generated {} cashflows for leg {}", paymentDates.size(), leg.getLegId());
     }
 
     private int parseSchedule(String schedule) {

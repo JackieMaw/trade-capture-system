@@ -29,6 +29,8 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -106,7 +108,8 @@ class TradeServiceTest {
     @Test
     void testCreateTrade_Success() {
         // Given
-        when(tradeRepository.save(any(Trade.class))).thenReturn(trade);
+        when(tradeRepository.save(any(Trade.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(tradeLegRepository.save(any(TradeLeg.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
         Trade result = tradeService.createTrade(tradeDTO);
