@@ -16,8 +16,6 @@ import com.technicalchallenge.repository.TradeLegRepository;
 import com.technicalchallenge.repository.TradeRepository;
 import com.technicalchallenge.repository.TradeStatusRepository;
 
-import lombok.experimental.var;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,7 +91,7 @@ class TradeServiceTest {
         TradeLegDTO leg2 = new TradeLegDTO();
         leg2.setNotional(BigDecimal.valueOf(1000000));
         leg2.setRate(0.0);
-        leg1.setCalculationPeriodSchedule("1M");
+        leg2.setCalculationPeriodSchedule("1M");
 
         tradeDTO.setTradeLegs(Arrays.asList(leg1, leg2));   
     }
@@ -235,11 +233,9 @@ class TradeServiceTest {
         Trade result = tradeService.createTrade(tradeDTO);
 
         // Then
-        int numberOfCashFlows = 0;
         for (TradeLeg tradeLeg : result.getTradeLegs()) {
-            numberOfCashFlows += tradeLeg.getCashflows().size();
+            assertEquals(12, tradeLeg.getCashflows().size()); 
         }
         
-        assertEquals(12, numberOfCashFlows); 
     }   
 }
