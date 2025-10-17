@@ -134,10 +134,19 @@ class TradeServiceTest {
         when(bookRepository.findByBookName(any(String.class))).thenReturn(Optional.of(new Book()));
         when(counterpartyRepository.findByName(any(String.class))).thenReturn(Optional.of(new Counterparty()));
         when(tradeStatusRepository.findByTradeStatus(any(String.class))).thenReturn(Optional.of(new TradeStatus()));
-        Schedule schedule = new Schedule();
-        schedule.setId(1L);
-        schedule.setSchedule("1M");
-        when(scheduleRepository.findBySchedule(any(String.class))).thenReturn(Optional.of(schedule)); 
+        
+        // Schedule schedule1m = new Schedule();
+        // schedule1m.setId(1L);
+        // schedule1m.setSchedule("1M");
+        // when(scheduleRepository.findBySchedule(any(String.class))).thenReturn(Optional.of(schedule1m)); 
+
+        when(scheduleRepository.findBySchedule(any(String.class))).thenAnswer(invocation -> {
+            String scheduleStr = invocation.getArgument(0);
+            Schedule scheduleObj = new Schedule();
+            scheduleObj.setSchedule(scheduleStr);
+            return Optional.of(scheduleObj);
+        });
+
         when(tradeRepository.save(any(Trade.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(tradeLegRepository.save(any(TradeLeg.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
@@ -232,7 +241,8 @@ class TradeServiceTest {
         // When
         Trade result = tradeService.createTrade(tradeDTO);
 
-        // Then
+        // Then        
+        assertEquals(2, result.getTradeLegs().size());
         for (TradeLeg tradeLeg : result.getTradeLegs()) {
             assertEquals(12, tradeLeg.getCashflows().size()); 
         }
